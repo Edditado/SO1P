@@ -2,47 +2,72 @@
 import urllib2
 from xml.dom import minidom
 
-# Obtencion de los datos de un url
-urlData = urllib2.urlopen('http://www.calendario.espol.edu.ec/index.php/rss')
 
-if (urlData):
-	# Transformacion los datos del url a un xml
-	xmlDoc = minidom.parse(urlData)
-	if (xmlDoc):
-		# Obtencion del nodo raiz del xml
-		rootNode = xmlDoc.documentElement
-		# Iteracion de los nodos hijos del nodo raiz
-		for node in rootNode.childNodes:
-			# Obtencion de los nodos de tipo <channel>
-			if(node.nodeName == "channel"):
-				for channelNode in node.childNodes:
-					# Obtencion de los "Feeds"
-					if (channelNode.nodeName == "item"):
-						for itemNode in channelNode.childNodes:
-							if (itemNode.nodeName == "title"):
-								# Obtencion del titulo
-								print "* Titulo:"
-								title = ""
-								for textNode in itemNode.childNodes:
-									if (textNode.nodeType == node.TEXT_NODE):
-										title += textNode.nodeValue
-								# Impresion del titulo
-								if (len(title)>0):
-									print title
 
-							if (itemNode.nodeName == "description"):
-								# Obtencion de la descripcion
-								print "- Descripcion:"
-								description = ""
-								for textNode in itemNode.childNodes:
-									if (textNode.nodeType == node.TEXT_NODE):
-										description += textNode.nodeValue
-								# Impresion de la descripcion
-								if (len(description)>0):
-									print description + "\n"
-									
+#Funcion que realiza iteraciones de los items(title, description) para imprimirlos
+def printTextN(ItNode, node):
+	d={"title":"* Titulo: ", "description":"- Descripcion: "}
+	text = ""
+	for text_node in ItNode.childNodes:
+		if (text_node.nodeType == node.TEXT_NODE):
+			text += text_node.nodeValue
+	if (len(text)>0):
+		print d[ItNode.nodeName]
+		print text
+		print ""
+
+
+
+
+
+#Funcion que itera los nodos de items
+def printItems(chNode, items, node):
+	#Imprime la informacion de nodos encontrados en cada channel
+	for inode in chNode.childNodes:
+		if inode.nodeName in items:
+			printTextN(inode, node)
+	print "\n"
+
+
+
+
+
+#Funcion que recibe por parametro el urlrss y presenta la informacion
+def getFeeds(url):
+	# Obtencion de los datos de un url
+	urlData = urllib2.urlopen(url)
+	if (urlData):
+		# Transformacion los datos del url a un xml
+		xmldoc = minidom.parse(urlData)
+		if (xmldoc):
+			# Obtencion del nodo raiz del xml
+			rootNode=xmldoc.documentElement
+			# Iteracion de los nodos hijos del nodo raiz
+			for node in rootNode.childNodes:
+			#Obtencion de los nodos tipo <channel>
+				if(node.nodeName=="channel"):
+					for channelNode in node.childNodes:
+						# Obtencion de los "Feeds"
+						if (channelNode.nodeName == "item"):
+							printItems(channelNode,["title","description"], node)
+		else:
+			print "No se pudo obtener el xml"
 	else:
-		print "No se pudo obtener el XML...\n"
-else:
-	print "Error obteniendo el URL...\n"
+		print "Error obteniendo el url"
 
+			
+
+
+
+
+
+
+
+#Funcion main que inicia el programa
+def main():
+	#Llamada a la funcion getFeeds con el link rss xml
+	getFeeds('http://www.calendario.espol.edu.ec/index.php/rss')
+
+
+
+main()
