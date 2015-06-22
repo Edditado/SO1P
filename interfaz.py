@@ -1,84 +1,71 @@
 import gtk
 
-actresses = [('Pagina1'), ('Pagina2'),
-    ('Pagina3'), ('Pagina4'),
-    ('Pagina5'), ('Pagina6' )]
-
 
 class PyApp(gtk.Window): 
     def __init__(self):
         super(PyApp, self).__init__()
         
-        self.set_size_request(700, 500)
+        self.set_size_request(400, 300)
         self.set_position(gtk.WIN_POS_CENTER)
         
         self.connect("destroy", gtk.main_quit)
-        self.set_title("RSS")
+        self.set_title("Tree")
+        
+        box1 = gtk.HBox()
+        
+        tree = gtk.TreeView()
+	
+        
+        languages = gtk.TreeViewColumn()
+        languages.set_title("Selector")
+ 
+        cell = gtk.CellRendererText()
+        languages.pack_start(cell, True)
+        languages.add_attribute(cell, "text", 0)
+ 
+        treestore = gtk.TreeStore(str)
+ 
+        it = treestore.append(None, ["Pag1"])
+        treestore.append(it, ["Rss11"])
+        treestore.append(it, ["Rss12"])
+        treestore.append(it, ["Rss13"])
+        treestore.append(it, ["Rss14"])
+ 
+        it = treestore.append(None, ["Pag2"])
+        treestore.append(it, ["Rss21"])
+        treestore.append(it, ["Rss22"])
+        treestore.append(it, ["Rss23"])
+        treestore.append(it, ["Rss24"])
+ 
+        tree.append_column(languages)
+        tree.set_model(treestore)
+        
+        box1.pack_start(tree)
+        
+        tree2 = gtk.TreeView()
+        tree2.set_rules_hint(True)     
 
-        hbox = gtk.HBox(spacing=15)
+        feeds = gtk.TreeViewColumn()
+        feeds.set_title("Feeds")
+ 
+        cell = gtk.CellRendererText()
+        feeds.pack_start(cell, True)
+        feeds.add_attribute(cell, "text", 0)
         
-        sw = gtk.ScrolledWindow()
-        #sw.set_shadow_type(gtk.SHADOW_ETCHED_IN)
-        #sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        treestore2 = gtk.TreeStore(str)
+	   
+	treestore2.append(None, ["Feed1\nOeoeoeoeoe"])
+        treestore2.append(None, ["Feed2\nJjahdkjashdjkhasdkas"])
         
-        hbox.pack_start(sw, True, True, 0)
+        tree2.append_column(feeds)
+        tree2.set_model(treestore2)
+        box1.pack_start(tree2)
+	
 
-        store = self.create_model()
-
-        treeView = gtk.TreeView(store)
-        treeView.connect("row-activated", self.on_activated)
-        treeView.set_rules_hint(True)
-        sw.add(treeView)
-
-        self.create_columns(treeView)
-        
-        """Seccion de Feeds"""
-        self.hbox_busqueda = gtk.HBox(spacing = 2)
-        
-        self.label_buscar = gtk.Label("Buscar:")
-        self.entry_buscar = gtk.Entry()
-        self.sw_feeds = gtk.ScrolledWindow()
-        
-        self.hbox_busqueda.pack_start(self.label_buscar)
-        self.hbox_busqueda.pack_start(self.entry_buscar)
-        
-        
-        hbox.pack_start(self.sw_feeds, True, True, 0)
-        
-        vbox= gtk.VBox(False,0)
-        vbox.pack_start(self.hbox_busqueda)
-        vbox.pack_start(hbox)
-        
-        self.add(vbox)
+        self.add(box1)
         self.show_all()
 
-	
-    def create_model(self):
-        store = gtk.ListStore(str)
-
-        for act in actresses:
-            store.append([act])
-            print store
-
-        return store
-
-
-    def create_columns(self, treeView):
     
-        rendererText = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Paginas", rendererText, text=0)
-        column.set_sort_column_id(0)    
-        treeView.append_column(column)
-       
-
-
-    def on_activated(self, widget, row, col):
-       
-        model = widget.get_model()
-        text = model[row][0]
-        print text
-
-
 
 PyApp()
 gtk.main()
