@@ -1,0 +1,3 @@
+http://www.eluniverso.com/rss/futbol.xml
+http://www.espol.edu.ec/anuncios.aspx
+http://www.eluniverso.com/rss/tecnologia.xml
