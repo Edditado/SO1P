@@ -25,7 +25,7 @@ class MainWindow:
         addItem = gtk.MenuItem("Agregar RSS..")
         addItem.connect("activate", self.createAddWindow)
         removeItem = gtk.MenuItem("Quitar RSS")
-        #removeItem.connect("activate", self.removeRss)
+        removeItem.connect("activate", self.removeRss)
         fileMenu.append(addItem)  
         fileMenu.append(removeItem) 
                             
@@ -142,7 +142,7 @@ class MainWindow:
     		rssFile.close()
     		self.addWindow.destroy()
     
-    """
+    
     #Remueve un Rss del panel izquierdo y del archivo
     def removeRss(self, widget):
     	parent = False
@@ -184,7 +184,7 @@ class MainWindow:
     	f.close()
     	    	
     	self.selecTreeStore.remove(it)
-    """		
+    	
     
     
     #Creacion de la ventana para Agregar Rss
