@@ -41,6 +41,7 @@ class MainWindow:
         scrolled = gtk.ScrolledWindow()
         scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.selecTree = gtk.TreeView()
+        self.selecTree.connect("row-activated", self.startThreads)
         
         self.selecCol = gtk.TreeViewColumn("Fuentes")
         self.selecCol.set_alignment(0.5)
@@ -60,7 +61,7 @@ class MainWindow:
         scrolled = gtk.ScrolledWindow()
         scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.feedsTree = gtk.TreeView()
-        self.feedsTree.set_rules_hint(True)     
+        self.feedsTree.set_rules_hint(True)    
 
         self.feedsCol = gtk.TreeViewColumn("Feeds")
         self.feedsCol.set_alignment(0.5)
@@ -86,6 +87,8 @@ class MainWindow:
         self.rssList = []
         self.feeds = []
         self.feedLinks = []
+        #Candado con condicion (sincronizacion de hilos)
+        self.condLock = threading.Condition() 
         #Obtencion de Rss guardadas
         self.getSavedRss()
 
@@ -112,6 +115,62 @@ class MainWindow:
     		
     	rssFile.close()
     	self.selecTree.expand_all()
+    
+     
+    #Inicia los hilos de productor y consumidor, dependiendo de que rss fue seleccionado (doble clic)
+    def startThreads(self, treeview, path, column):
+    	model = treeview.get_model()
+    	it = model.get_iter(path)
+    	val = model.get_value(it, 0)
+    	itp = model.iter_parent(it)
+    	valp = ""
+    	if (itp is not None):
+    		valp = model.get_value(itp, 0)
+    		
+    	for pag, rss, url in self.rssList:
+    		if(valp == pag and val == rss):
+    			prodThread = threading.Thread(name="producer", target=self.pullFeeds, args=(url,))
+    			consThread = threading.Thread(name="consumer", target=self.showFeeds)
+    			print "*******************************************************"
+    			prodThread.start()
+    			consThread.start()
+    			prodThread.join()
+    			consThread.join()
+    
+    
+    #Usada por el hilo Productor, obtiene los feeds del url especificado y 
+    #los guarda en un arreglo
+    def pullFeeds(self, url):
+    	print threading.currentThread().getName()+" inicia"
+    	self.condLock.acquire()
+    	print threading.currentThread().getName()+" obtiene llave"
+    	self.feeds = fg.getFeeds(url)
+    	self.condLock.notifyAll()
+    	print threading.currentThread().getName()+" notifica"
+    	self.condLock.release()
+    	print threading.currentThread().getName()+" libera llave"
+    	print threading.currentThread().getName()+" termina"
+
+    
+    #Usada por el hilo Consumidor, muestra los feeds guardados en el arreglo
+    #en forma de lista en el panel derecho
+    def showFeeds(self):
+    	print threading.currentThread().getName()+" inicia"
+    	self.feedsStore.clear()
+    	self.feedLinks = []
+    	self.condLock.acquire()
+    	print threading.currentThread().getName()+" obtiene llave"
+    	if(self.feeds == []):
+    		print threading.currentThread().getName()+" espera"
+    		self.condLock.wait()
+    	print threading.currentThread().getName()+" continua"
+    	for feed, link in self.feeds:
+    		self.feedsStore.append([feed])
+    		self.feedLinks.append(link)
+    	self.feeds = []
+    	self.condLock.release()
+    	print threading.currentThread().getName()+" libera llave"
+    	print threading.currentThread().getName()+" termina"
     
     
     #Añade un nuevo Rss al panel izquierdo, y guarda su url en el archivo
@@ -184,7 +243,6 @@ class MainWindow:
     	f.close()
     	    	
     	self.selecTreeStore.remove(it)
-    	
     
     
     #Creacion de la ventana para Agregar Rss
