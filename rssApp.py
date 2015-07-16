@@ -61,7 +61,8 @@ class MainWindow:
         scrolled = gtk.ScrolledWindow()
         scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.feedsTree = gtk.TreeView()
-        self.feedsTree.set_rules_hint(True)    
+        self.feedsTree.set_rules_hint(True)   
+        self.feedsTree.connect("row-activated", self.goToLink)  
 
         self.feedsCol = gtk.TreeViewColumn("Feeds")
         self.feedsCol.set_alignment(0.5)
@@ -243,6 +244,11 @@ class MainWindow:
     	f.close()
     	    	
     	self.selecTreeStore.remove(it)
+    		
+	
+	#Redirecciona el feed (al darle doble clic) a su respectiva noticia completa en el navegador
+    def goToLink(self, treeview, path, column):
+    	gtk.show_uri(None, self.feedLinks[path[0]], gtk.gdk.CURRENT_TIME)
     
     
     #Creacion de la ventana para Agregar Rss
